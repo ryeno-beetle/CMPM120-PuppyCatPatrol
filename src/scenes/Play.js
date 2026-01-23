@@ -27,7 +27,7 @@ class Play extends Phaser.Scene {
         // init score
         this.p1Score = 0;
         // display score
-        let scoreConfig = {
+        let textConfig = {
             fontFamily: 'Courier',
             fontSize: '28px',
             backgroundColor: '#FFFFFF',
@@ -39,17 +39,35 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         };
-        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding * 2, this.p1Score, scoreConfig);
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding * 2, this.p1Score, textConfig);
         
         // GAME OVER flag
         this.gameOver = false
         // 60s timer
-        scoreConfig.fixedWidth = 0;
+        textConfig.fixedWidth = 0;
         this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'press (R) to restart or (<-) for menu', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', textConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'press (R) to restart or (<-) for menu', textConfig).setOrigin(0.5);
             this.gameOver = true;
         }, null, this);
+
+        // display timer
+        // textConfig.fixedWidth = 50;
+        this.timerDisplay = this.add.text(game.config.width - borderUISize + borderPadding - 55, borderUISize + borderPadding * 2, game.settings.gameTimer, textConfig);
+
+        // events to set if mouse is on/off canvas if it has changed
+        this.input.on('gameout', () => {
+            pointerOnCanvas = false
+            // console.log("pointer left canvas");
+        });
+        this.input.on('gameover', () => {
+            pointerOnCanvas = true
+            // console.log("pointer on canvas");
+        });
+        // event for pointer down 
+        this.input.on('pointerdown', () => {
+            this.p1Rocket.fire();
+        })
     }
 
     update() {
@@ -81,6 +99,9 @@ class Play extends Phaser.Scene {
             this.p1Rocket.reset();
             this.shipExplode(this.ship1);
         }
+
+        //update timer
+        this.updateTimer();
     }
 
     checkCollision(rocket, ship) {
@@ -110,5 +131,10 @@ class Play extends Phaser.Scene {
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
         this.sound.play('om_sfx');
+    }
+
+    updateTimer() {
+        let timeLeft = Math.floor((this.game.settings.gameTimer - this.clock.elapsed) / 1000); // seconds left
+        this.timerDisplay.text = timeLeft;
     }
 }
