@@ -8,6 +8,7 @@ class Play extends Phaser.Scene {
         this.sky = this.add.tileSprite(0, 0, 640, 480, 'sky').setOrigin(0, 0);
         // add rocket (p1)
         this.p1Rocket = new Rocket(this, game.config.width / 2, game.config.height - borderUISize - borderPadding - borderPadding, 'fish').setOrigin(0.5, 0);
+        this.rocketEventEmitter = this.p1Rocket.scene.events;
         // add spaceships (x3)
         this.ship1 = new Spaceship(this, game.config.width + borderUISize * 6, borderUISize * 4, 'puppycat', 0, 30).setOrigin(0, 0);
         this.ship2 = new Spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'puppycat', 0, 20).setOrigin(0, 0);
@@ -68,14 +69,22 @@ class Play extends Phaser.Scene {
         this.input.on('pointerdown', () => {
             this.p1Rocket.fire();
         })
+        // event for rocket miss (subtract 10s from clock)
+        this.rocketEventEmitter.on('rocketmiss', () => {
+            console.log('rocket miss');
+            this.clock.elapsed += 10000;
+        })
+
     }
 
     update() {
         // check key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyRESET)) {
+            this.rocketEventEmitter.off('rocketmiss');
             this.scene.restart();
         }
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
+            this.rocketEventEmitter.off('rocketmiss');
             this.scene.start('menuScene');
         }
         if (!this.gameOver) {
@@ -131,6 +140,8 @@ class Play extends Phaser.Scene {
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
         this.sound.play('om_sfx');
+        // add time to timer (ship points / 2 in seconds)
+        this.clock.elapsed -= 500 * ship.points;
     }
 
     updateTimer() {

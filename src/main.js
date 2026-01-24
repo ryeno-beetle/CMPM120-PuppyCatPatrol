@@ -7,6 +7,7 @@
     - display the time remaining (in seconds) on the screen (3)
 */
 /* citations:
+    -  event emitters: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/eventemitter3/
 */
 'use strict'
 
