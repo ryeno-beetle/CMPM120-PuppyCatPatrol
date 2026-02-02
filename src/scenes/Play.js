@@ -10,9 +10,9 @@ class Play extends Phaser.Scene {
         this.p1Rocket = new Rocket(this, game.config.width / 2, game.config.height - borderUISize - borderPadding - borderPadding, 'fish').setOrigin(0.5, 0);
         this.rocketEventEmitter = this.p1Rocket.scene.events;
         // add spaceships (x3)
-        this.ship1 = new Spaceship(this, game.config.width + borderUISize * 6, borderUISize * 4, 'puppycat', 0, 30).setOrigin(0, 0);
-        this.ship2 = new Spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'puppycat', 0, 20).setOrigin(0, 0);
-        this.ship3 = new Spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'puppycat', 0, 10).setOrigin(0, 0);
+        this.ship1 = new Spaceship(this, game.config.width + borderUISize * 6, borderUISize * 4, 'puppycat_flail', 0, 30).setOrigin(0, 0);
+        this.ship2 = new Spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'puppycat_flail', 0, 20).setOrigin(0, 0);
+        this.ship3 = new Spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'puppycat_flail', 0, 10).setOrigin(0, 0);
         // pink ui background
         this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0xffa8be).setOrigin(0, 0);
         // white borders
@@ -42,6 +42,18 @@ class Play extends Phaser.Scene {
         };
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding * 2, this.p1Score, textConfig);
         
+        //popup text config
+        this.popupConfig = {
+            fontFamily: 'Courier',
+            fontSize: '15px',
+            color: '#fff4f6',
+            align: 'right',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+        };
+
         // GAME OVER flag
         this.gameOver = false
         // 60s timer
@@ -70,11 +82,13 @@ class Play extends Phaser.Scene {
             this.p1Rocket.fire();
         })
         // event for rocket miss (subtract 10s from clock)
-        this.rocketEventEmitter.on('rocketmiss', () => {
-            console.log('rocket miss');
+        this.rocketEventEmitter.on('rocketmiss', (x, y) => {
+            // console.log('rocket miss');
             this.clock.elapsed += 10000;
+            // popup text
+            let timeText = this.add.text(x + this.p1Rocket.width + 20, y + 20, "- 10 sec", this.popupConfig);
+            this.PopupTextTween([timeText]);
         })
-
     }
 
     update() {
@@ -115,10 +129,10 @@ class Play extends Phaser.Scene {
 
     checkCollision(rocket, ship) {
         // simple AABB checking
-        if (rocket.x < ship.x + ship.width && 
-            rocket.x + rocket.width > ship.x && 
+        if (rocket.x < ship.x + ship.width - 5 && 
+            rocket.x + rocket.width > ship.x + 5 && 
             rocket.y < ship.y + ship.height && 
-            rocket.height + rocket.y > ship.y) {
+            rocket.height + rocket.y > ship.y + 40) {
             return true;
         } else {
             return false;
@@ -130,18 +144,76 @@ class Play extends Phaser.Scene {
         ship.alpha = 0;
         // create om ('explosion') sprite at ship's position
         let om = this.add.sprite(ship.x, ship.y, 'om').setOrigin(0, 0);
+        
         om.anims.play('om'); // play om animation
+
         om.on('animationcomplete', () => { // callback after anim completes
-            ship.reset(); // reset ship position
-            ship.alpha = 1; // make ship visible again
-            om.destroy(); // remove om sprite
+            let chew = this.add.sprite(om.x, om.y, 'chew').setOrigin(0, 0);
+            om.destroy();
+            chew.anims.play('chew');
+            this.tweens.chain({
+                targets: chew,
+                tweens: [
+                    {
+                        duration: 500,
+                        ease: 'Sine.easeIn',
+                        //properties
+                        y: '-=30',
+                        scale: 0.75,
+                    },
+                    {
+                        duration: 500,
+                        ease: 'Sine.easeOut',
+                        onComplete: function () {
+                            ship.reset(); // reset ship position
+                            ship.alpha = 1; // make ship visible again
+                            //om.destroy(); // remove om sprite
+                            chew.destroy(); // remove chew sprite
+                        },
+                        //properties
+                        y: '+=10',
+                        scale: 0.5,
+                        alpha: 0,
+                        persist: false
+                    }
+                ]
+                
+            });
+            //tweenOut.play();
         });
+        //text tween
+        let pointsText = this.add.text(ship.x + ship.width + 20, ship.y + 10, "+ " + ship.points + " pts", this.popupConfig);
+        let timeText = this.add.text(ship.x + ship.width + 20, ship.y + 40, "+ " + 0.5 * ship.points + " sec", this.popupConfig);
+        this.PopupTextTween([pointsText, timeText]);
         // score add and text update
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
         this.sound.play('om_sfx');
         // add time to timer (ship points / 2 in seconds)
         this.clock.elapsed -= 500 * ship.points;
+    }
+
+    PopupTextTween(t) {
+        this.tweens.chain({
+            targets: t,
+            tweens: [
+                {
+                    duration: 500,
+                    ease: 'Linear',
+                    y: '-=20',
+                },
+                {
+                    duration: 500,
+                    ease: 'Linear',
+                    onComplete: function () {
+                        t.forEach((val) => {val.destroy()});
+                    },
+                    y: '-=20',
+                    alpha: 0,
+                    persist: false
+                }
+            ]
+        });
     }
 
     updateTimer() {
