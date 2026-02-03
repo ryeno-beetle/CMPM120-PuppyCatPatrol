@@ -1,6 +1,6 @@
 // Rye Donaldson
 // PuppyCat Patrol
-// time estimate: 8hrs
+// time estimate: 10hrs ??
 /* mods:
     - mouse control for player movement and left mouse click to fire (5)
     - new timing/scoring mechanism that adds time to the clock for successful hits and subtracts time for misses (5)
@@ -18,7 +18,6 @@ other changes:
     - event emitters: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/eventemitter3/
     - scaling tweens: https://www.html5gamedevs.com/topic/40768-how-to-tween-scale-in-phaser-3/
     - tween example: https://labs.phaser.io/phaser4-view.html?src=src%5Ctweens%5Cchains%5Cbat%20tween.js&return=phaser4-index.html
-    - phaser docs for general info: https://docs.phaser.io/phaser
 */
 'use strict'
 
