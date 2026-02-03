@@ -62,6 +62,7 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', textConfig).setOrigin(0.5);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'press (R) to restart or (<-) for menu', textConfig).setOrigin(0.5);
             this.gameOver = true;
+            this.music.destroy();
         }, null, this);
 
         // display timer
@@ -89,6 +90,9 @@ class Play extends Phaser.Scene {
             let timeText = this.add.text(x + this.p1Rocket.width + 20, y + 20, "- 10 sec", this.popupConfig);
             this.PopupTextTween([timeText]);
         })
+        // music!
+        this.music = this.sound.add('music', {volume: 0.5, loop: true, delay: 0});
+        this.music.play();
     }
 
     update() {

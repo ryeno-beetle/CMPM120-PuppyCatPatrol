@@ -21,6 +21,8 @@ class Menu extends Phaser.Scene {
         this.load.audio('om_sfx', './assets/sfx/om2_sfx.wav');
         this.load.audio('tap_sfx', './assets/sfx/tap_sfx.wav');
         this.load.audio('fsh_sfx', './assets/sfx/fsh_sfx.wav');
+        //load music!
+        this.load.audio('music', './assets/puppycatpatrolsong.wav');
     }
 
     create() {
